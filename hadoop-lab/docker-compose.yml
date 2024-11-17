@@ -1,0 +1,46 @@
+version: "3"
+networks:
+  hadoop_network:
+
+services:
+  hadoop:
+    image: neshkeev/hadoop
+    hostname: hadoop
+    container_name: hadoop
+    networks:
+      - hadoop_network
+    ports:
+      - "8042:8042"
+      - "8088:8088"
+      - "9870:9870"  # HDFS
+      - "9864:9864"
+      - "19888:19888"
+    volumes:
+      - ./books:/tmp/books
+      - ./scripts:/tmp/scripts
+    healthcheck: &hc
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 20
+      test: /bin/check-ports 8042 8088 9000 9870 9864 10020 19888
+    environment:
+      CORE-SITE.XML_fs.defaultFS: hdfs://hadoop:9000
+
+      HDFS-SITE.XML_dfs.replication: 1
+      HDFS-SITE.XML_dfs.permissions: false
+      HDFS-SITE.XML_dfs.datanode.hostname: localhost
+
+      MAPRED-SITE.XML_mapreduce.framework.name: yarn
+      MAPRED-SITE.XML_mapreduce.application.classpath: $$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*
+
+      MAPRED-SITE.XML_mapreduce.jobhistory.address: host.docker.internal:10020
+      MAPRED-SITE.XML_mapreduce.jobhistory.webapp.address: host.docker.internal:19888
+      MAPRED-SITE.XML_mapreduce.jobhistory.bind-host: 0.0.0.0
+
+      YARN-SITE.XML_yarn.nodemanager.aux-services: mapreduce_shuffle
+      YARN-SITE.XML_yarn.nodemanager.env-whitelist: JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ,HADOOP_MAPRED_HOME
+
+      YARN-SITE.XML_yarn.resourcemanager.webapp.address: host.docker.internal:8088
+      YARN-SITE.XML_yarn.resourcemanager.bind-host: 0.0.0.0
+

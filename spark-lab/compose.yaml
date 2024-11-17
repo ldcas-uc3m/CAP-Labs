@@ -1,0 +1,14 @@
+services:
+  spark:
+    image: "quay.io/jupyter/pyspark-notebook"
+    ports:
+      - "8888:8888"  # Jupyter Server
+      - "4040:4040"  # Spark Jobs (monitoring)
+      - "18080:18080"
+    volumes:
+      - ./data:/home/jovyan/data
+      - ./output:/home/jovyan/output
+      - ./notebooks:/home/jovyan/notebooks
+    environment:
+      - GRANT_SUDO=yes
+    user: root
